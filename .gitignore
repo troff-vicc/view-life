@@ -1,0 +1,39 @@
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Django
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Ollama / ML models
+*.gguf
+*.bin
+models/
