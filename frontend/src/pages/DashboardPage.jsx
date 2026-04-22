@@ -56,6 +56,7 @@ export default function DashboardPage() {
         </select><br/>
         <button type="submit">Создать</button>
       </form>
+      <a href="/ai">🤖 Создать задачу через ИИ</a>
 
       <h3>Список задач:</h3>
       {tasks.length === 0 && <p>Задач пока нет</p>}
