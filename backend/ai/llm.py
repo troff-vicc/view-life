@@ -59,41 +59,37 @@ Rules:
         }
 
 def recommend_start_time(task_data: dict, existing_tasks: list) -> str | None:
-    """ИИ советует когда начать задачу"""
+    """ИИ автоматически советует когда начать задачу"""
     
-    deadline = task_data.get('deadline', 'не указан')
-    estimated = task_data.get('estimated_minutes', 60)
+    deadline = task_data.get('deadline') or 'не указан'
+    estimated = task_data.get('estimated_minutes') or 60
     today = datetime.now().strftime("%Y-%m-%d %H:%M")
     
-    # Готовим список занятых дней
     busy_days = []
     for t in existing_tasks:
         if t.get('deadline'):
             busy_days.append(f"- {t['title']} (дедлайн: {t['deadline']})")
-    
     busy_str = "\n".join(busy_days) if busy_days else "нет других задач"
     
-    prompt = f"""You are a school schedule planner. Suggest the best start time for a task.
+    prompt = f"""School schedule planner. Choose the best time to START working on a task.
 
 Today: {today}
-New task deadline: {deadline}
-Estimated time: {estimated} minutes
-Student's other tasks:
-{busy_str}
+Task deadline: {deadline}
+Time needed: {estimated} minutes
+Other tasks: {busy_str}
 
-Rules:
-- Suggest a weekday evening (17:00-21:00) or weekend morning (10:00-13:00)
-- Start at least 1 day before deadline
-- Avoid days that already have tasks with close deadlines
-- Return ONLY a datetime string in format: YYYY-MM-DD HH:MM
-- Nothing else, just the datetime"""
+Choose a time slot:
+- Weekdays: 17:00-21:00 (after school)
+- Weekends: 10:00-13:00
+- If no deadline: suggest tomorrow or day after
+- Avoid days with other tasks if possible
+- Start early enough to finish before deadline
+
+Return ONLY datetime in format YYYY-MM-DD HH:MM, nothing else."""
 
     response = llm.invoke(prompt).strip()
-    
-    # Проверяем что это дата
     try:
         datetime.strptime(response[:16], "%Y-%m-%d %H:%M")
         return response[:16]
     except Exception:
         return None
-

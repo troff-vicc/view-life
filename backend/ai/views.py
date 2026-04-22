@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .llm import classify_task
+from .llm import classify_task, recommend_start_time
 from tasks.models import Task, TaskStep
 from tasks.serializers import TaskSerializer
 from datetime import datetime
@@ -14,10 +14,10 @@ def ai_create_task(request):
     if not text:
         return Response({'error': 'Текст не указан'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # ИИ классифицирует
+    # ИИ классифицирует задачу
     classified = classify_task(text)
 
-    # Парсим дедлайн
+    # Парсим дедлайн если ИИ его нашёл в тексте
     deadline = None
     if classified.get('deadline'):
         try:
@@ -39,24 +39,23 @@ def ai_create_task(request):
         assigned_to=request.user,
     )
 
-    existing = list(request.user.assigned_tasks.filter(
-	    status__in=['pending', 'in_progress']
-	).values('title', 'deadline'))
-
-# ИИ советует время начала
-from .llm import recommend_start_time
-recommended = recommend_start_time(classified, existing)
-if recommended:
-    from datetime import datetime
-    try:
-        task.recommended_start = datetime.strptime(recommended, '%Y-%m-%d %H:%M')
-        task.save()
-    except Exception:
-        pass
-
-    # Создаём шаги
+    # Создаём шаги от ИИ
     for i, step_title in enumerate(classified.get('steps', [])):
         TaskStep.objects.create(task=task, title=step_title, order=i)
+
+    # Автоматически советуем время начала если пользователь не назвал его
+    # (не нужно спрашивать — ИИ сам решает)
+    existing = list(request.user.assigned_tasks.filter(
+        status__in=['pending', 'in_progress']
+    ).exclude(id=task.id).values('title', 'deadline'))
+
+    recommended = recommend_start_time(classified, existing)
+    if recommended:
+        try:
+            task.recommended_start = datetime.strptime(recommended, '%Y-%m-%d %H:%M')
+            task.save()
+        except Exception:
+            pass
 
     return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
 
