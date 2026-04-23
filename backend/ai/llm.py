@@ -1,8 +1,16 @@
 import json
 from langchain_ollama import OllamaLLM
 from datetime import datetime
+import json
+from langchain_ollama import OllamaLLM
+from datetime import datetime
+from django.conf import settings
 
-llm = OllamaLLM(model="llama3.2:3b", temperature=0)
+llm = OllamaLLM(
+    model=settings.OLLAMA_MODEL,
+    base_url=settings.OLLAMA_BASE_URL,
+    temperature=0
+)
 
 def classify_task(text: str) -> dict:
     today = datetime.now().strftime("%Y-%m-%d")

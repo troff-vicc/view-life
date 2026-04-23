@@ -10,6 +10,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-me')
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+OLLAMA_MODEL = 'llama3.1:8b'
+OLLAMA_BASE_URL = 'http://localhost:11434'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
