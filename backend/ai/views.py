@@ -67,3 +67,112 @@ def ai_classify_only(request):
         return Response({'error': 'Текст не указан'}, status=status.HTTP_400_BAD_REQUEST)
     result = classify_task(text)
     return Response(result)
+
+
+@api_view(['POST'])
+def ai_chat(request):
+    """
+    Умный чат — ИИ сам понимает что нужно сделать:
+    - создать задачу
+    - разбить существующую на шаги
+    - посоветовать время
+    - просто ответить
+    """
+    from .llm import detect_intent, generate_steps_for_task, recommend_start_time
+
+    text = request.data.get('text', '').strip()
+    if not text:
+        return Response({'error': 'Текст не указан'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Получаем задачи пользователя для контекста
+    user_tasks = list(request.user.assigned_tasks.filter(
+        status__in=['pending', 'in_progress']
+    ).values('id', 'title', 'subject', 'deadline'))
+
+    # ИИ определяет намерение
+    intent_data = detect_intent(text, user_tasks)
+    intent = intent_data.get('intent', 'general')
+    task_id = intent_data.get('task_id')
+
+    if intent == 'create_task':
+        classified = classify_task(text)
+        deadline = None
+        if classified.get('deadline'):
+            try:
+                deadline = datetime.strptime(classified['deadline'], '%Y-%m-%d %H:%M')
+            except Exception:
+                pass
+
+        task = Task.objects.create(
+            title=classified.get('title', text[:100]),
+            subject=classified.get('subject', ''),
+            task_type=classified.get('task_type', 'other'),
+            priority=classified.get('priority', 'medium'),
+            deadline=deadline,
+            estimated_minutes=classified.get('estimated_minutes'),
+            raw_input=text,
+            ai_generated=True,
+            created_by=request.user,
+            assigned_to=request.user,
+        )
+        for i, step_title in enumerate(classified.get('steps', [])):
+            TaskStep.objects.create(task=task, title=step_title, order=i)
+
+        # Рекомендуем время начала
+        recommended = recommend_start_time(classified, user_tasks)
+        if recommended:
+            try:
+                task.recommended_start = datetime.strptime(recommended, '%Y-%m-%d %H:%M')
+                task.save()
+            except Exception:
+                pass
+
+        return Response({
+            'intent': 'create_task',
+            'message': f'Создал задачу "{task.title}"',
+            'task': TaskSerializer(task).data,
+        })
+
+    elif intent == 'breakdown_task' and task_id:
+        try:
+            task = Task.objects.get(id=task_id, assigned_to=request.user)
+        except Task.DoesNotExist:
+            return Response({'intent': 'general', 'message': 'Задача не найдена'})
+
+        # Удаляем старые шаги и генерируем новые
+        task.steps.all().delete()
+        new_steps = generate_steps_for_task(task.title, task.subject)
+        for i, step_title in enumerate(new_steps):
+            TaskStep.objects.create(task=task, title=step_title, order=i)
+
+        return Response({
+            'intent': 'breakdown_task',
+            'message': f'Разбил задачу "{task.title}" на {len(new_steps)} шагов',
+            'task': TaskSerializer(task).data,
+        })
+
+    elif intent == 'suggest_time':
+        task = None
+        task_data = {}
+        if task_id:
+            try:
+                task = Task.objects.get(id=task_id, assigned_to=request.user)
+                task_data = {'title': task.title, 'deadline': str(task.deadline) if task.deadline else None, 'estimated_minutes': task.estimated_minutes}
+            except Task.DoesNotExist:
+                pass
+
+        recommended = recommend_start_time(task_data, user_tasks)
+        msg = f'Рекомендую начать: {recommended}' if recommended else 'Не могу определить лучшее время'
+
+        return Response({
+            'intent': 'suggest_time',
+            'message': msg,
+            'recommended_start': recommended,
+        })
+
+    else:
+        return Response({
+            'intent': 'general',
+            'message': 'Опиши задачу — создам её, или скажи "разбей задачу X" чтобы добавить шаги.',
+        })
+

@@ -101,3 +101,78 @@ Return ONLY datetime in format YYYY-MM-DD HH:MM, nothing else."""
         return response[:16]
     except Exception:
         return None
+
+def detect_intent(text: str, user_tasks: list) -> dict:
+    """Determines what the user wants to do"""
+
+    tasks_str = "\n".join([
+        f"- id={t['id']}: {t['title']} ({t.get('subject') or 'no subject'})"
+        for t in user_tasks
+    ]) if user_tasks else "no tasks"
+
+    prompt = f"""You are an intent classifier for a school task tracker. Return ONLY a complete JSON object, nothing else.
+
+User message: "{text}"
+
+User's existing tasks:
+{tasks_str}
+
+Return this exact JSON structure:
+{{
+  "intent": "create_task or breakdown_task or suggest_time or general",
+  "task_id": number or null
+}}
+
+Rules:
+- intent=breakdown_task: user wants to split/break down an existing task into steps (keywords: разбей, подзадачи, как выполнить, помоги с)
+- intent=suggest_time: user asks when to do something (keywords: когда, во сколько, лучшее время, успею ли)
+- intent=create_task: user describes a new assignment, exam, deadline, or task
+- intent=general: anything else
+- task_id: if breakdown_task or suggest_time — find the matching task id from the list above, else null
+- Respond with JSON only, no explanation"""
+
+    response = llm.invoke(prompt)
+
+    try:
+        start = response.find('{')
+        end = response.rfind('}') + 1
+        if start == -1:
+            raise ValueError("No JSON found")
+        result = json.loads(response[start:end])
+        result.setdefault('intent', 'general')
+        result.setdefault('task_id', None)
+        return result
+    except Exception:
+        return {'intent': 'general', 'task_id': None}
+
+
+def generate_steps_for_task(task_title: str, task_subject: str) -> list:
+    """Generates detailed steps for an existing task"""
+
+    prompt = f"""You are a school task planner. Return ONLY a complete JSON object, nothing else.
+
+Task: "{task_title}"
+Subject: "{task_subject or 'not specified'}"
+
+Return this exact JSON structure:
+{{
+  "steps": ["step 1 in Russian", "step 2 in Russian", "step 3 in Russian", "step 4 in Russian"]
+}}
+
+Rules:
+- steps must be 3-6 specific, actionable items in Russian
+- steps should be ordered logically (preparation → execution → review)
+- each step should be short (5-10 words)
+- Respond with JSON only, no explanation"""
+
+    response = llm.invoke(prompt)
+
+    try:
+        start = response.find('{')
+        end = response.rfind('}') + 1
+        if start == -1:
+            raise ValueError("No JSON found")
+        result = json.loads(response[start:end])
+        return result.get('steps', [])
+    except Exception:
+        return ["Подготовиться", "Выполнить задание", "Проверить работу"]
