@@ -80,7 +80,7 @@ def task_status(request, pk):
 
     task.status = new_status
     if new_status == 'done':
-        task.points_awarded = 10  # баллы за выполнение
+        task.points_awarded = 10
     task.save()
     return Response(TaskSerializer(task).data)
 

@@ -9,7 +9,7 @@ class User(AbstractUser):
         ('parent', 'Родитель'),
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
-    # Родитель привязан к ученику
+
     linked_student = models.ForeignKey(
         'self', null=True, blank=True,
         on_delete=models.SET_NULL,

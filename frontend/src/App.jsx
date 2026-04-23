@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import AIChatPage from './pages/AIChatPage'
+import TaskDetailPage from './pages/TaskDetailPage'
 
 function App() {
   const token = localStorage.getItem('access_token')
@@ -18,6 +19,7 @@ function App() {
         />
         <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
         <Route path="/ai" element={token ? <AIChatPage /> : <Navigate to="/login" />} />
+        <Route path="/task/:id" element={<TaskDetailPage />} />
       </Routes>
     </BrowserRouter>
   )

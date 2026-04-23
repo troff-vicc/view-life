@@ -147,7 +147,7 @@ Rules:
 
 
 def generate_steps_for_task(task_title: str, task_subject: str) -> list:
-    """Generates detailed steps for an existing task"""
+    """Создает подробные пошаговые инструкции для существующей задачи"""
 
     prompt = f"""You are a school task planner. Return ONLY a complete JSON object, nothing else.
 
@@ -176,3 +176,4 @@ Rules:
         return result.get('steps', [])
     except Exception:
         return ["Подготовиться", "Выполнить задание", "Проверить работу"]
+

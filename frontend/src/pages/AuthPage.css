@@ -1,0 +1,142 @@
+.auth-wrapper {
+  min-height: 100vh;
+  background: #efefeb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 36px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 4px 24px rgba(91, 79, 207, 0.08);
+  text-align: center;
+}
+
+.auth-logo {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin: 0 0 4px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 28px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.auth-field input {
+  padding: 12px 14px;
+  border: 1.5px solid #e8e4ff;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #1a1a2e;
+  background: #faf9ff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-field input:focus {
+  border-color: #5b4fcf;
+}
+
+.auth-roles {
+  display: flex;
+  gap: 8px;
+}
+
+.auth-role-btn {
+  flex: 1;
+  padding: 10px 6px;
+  border: 1.5px solid #e8e4ff;
+  border-radius: 10px;
+  background: #faf9ff;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.2s;
+}
+
+.auth-role-btn.active {
+  background: #CCFF00;
+  border-color: #CCFF00;
+  color: #1a1a2e;
+  font-weight: 700;
+}
+
+.auth-error {
+  background: #fff0f0;
+  color: #e53e3e;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-btn {
+  padding: 15px;
+  background: #CCFF00;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.auth-btn:disabled {
+  opacity: 0.6;
+}
+
+.auth-btn:active {
+  opacity: 0.85;
+}
+
+.auth-link {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #888;
+}
+
+.auth-link a {
+  color: #1a1a2e;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}

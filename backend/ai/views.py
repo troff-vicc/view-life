@@ -14,10 +14,8 @@ def ai_create_task(request):
     if not text:
         return Response({'error': 'Текст не указан'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # ИИ классифицирует задачу
     classified = classify_task(text)
 
-    # Парсим дедлайн если ИИ его нашёл в тексте
     deadline = None
     if classified.get('deadline'):
         try:
@@ -25,7 +23,6 @@ def ai_create_task(request):
         except Exception:
             pass
 
-    # Создаём задачу
     task = Task.objects.create(
         title=classified.get('title', text[:100]),
         subject=classified.get('subject', ''),
@@ -39,11 +36,9 @@ def ai_create_task(request):
         assigned_to=request.user,
     )
 
-    # Создаём шаги от ИИ
     for i, step_title in enumerate(classified.get('steps', [])):
         TaskStep.objects.create(task=task, title=step_title, order=i)
 
-    # Автоматически советуем время начала если пользователь не назвал его
     existing = list(request.user.assigned_tasks.filter(
         status__in=['pending', 'in_progress']
     ).exclude(id=task.id).values('title', 'deadline'))
@@ -84,12 +79,10 @@ def ai_chat(request):
     if not text:
         return Response({'error': 'Текст не указан'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Получаем задачи пользователя для контекста
     user_tasks = list(request.user.assigned_tasks.filter(
         status__in=['pending', 'in_progress']
     ).values('id', 'title', 'subject', 'deadline'))
 
-    # ИИ определяет намерение
     intent_data = detect_intent(text, user_tasks)
     intent = intent_data.get('intent', 'general')
     task_id = intent_data.get('task_id')
@@ -118,7 +111,6 @@ def ai_chat(request):
         for i, step_title in enumerate(classified.get('steps', [])):
             TaskStep.objects.create(task=task, title=step_title, order=i)
 
-        # Рекомендуем время начала
         recommended = recommend_start_time(classified, user_tasks)
         if recommended:
             try:
@@ -139,7 +131,6 @@ def ai_chat(request):
         except Task.DoesNotExist:
             return Response({'intent': 'general', 'message': 'Задача не найдена'})
 
-        # Удаляем старые шаги и генерируем новые
         task.steps.all().delete()
         new_steps = generate_steps_for_task(task.title, task.subject)
         for i, step_title in enumerate(new_steps):

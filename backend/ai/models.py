@@ -8,10 +8,9 @@ class AIConversation(models.Model):
         on_delete=models.CASCADE,
         related_name='ai_conversations'
     )
-    # История диалога: [{"role": "user", "text": "..."}, {"role": "ai", "text": "..."}]
+
     messages = models.JSONField(default=list)
     
-    # Задача, которая получится в конце диалога
     task = models.ForeignKey(
         'tasks.Task',
         null=True, blank=True,
@@ -19,7 +18,6 @@ class AIConversation(models.Model):
         related_name='conversation'
     )
     
-    # Диалог завершён и задача создана?
     is_complete = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
