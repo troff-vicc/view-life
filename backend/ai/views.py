@@ -44,7 +44,6 @@ def ai_create_task(request):
         TaskStep.objects.create(task=task, title=step_title, order=i)
 
     # Автоматически советуем время начала если пользователь не назвал его
-    # (не нужно спрашивать — ИИ сам решает)
     existing = list(request.user.assigned_tasks.filter(
         status__in=['pending', 'in_progress']
     ).exclude(id=task.id).values('title', 'deadline'))

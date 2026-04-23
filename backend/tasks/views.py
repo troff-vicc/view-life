@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Task, TaskStep
 from .serializers import TaskSerializer, TaskCreateSerializer
+from .serializers import TaskStepSerializer
 
 
 @api_view(['POST'])
@@ -95,3 +96,46 @@ def step_toggle(request, pk):
     step.is_done = not step.is_done
     step.save()
     return Response({'id': step.id, 'is_done': step.is_done})
+
+
+@api_view(['GET', 'POST'])
+def task_steps(request, task_pk):
+    """Получить шаги задачи / добавить новый шаг вручную"""
+    try:
+        task = Task.objects.get(pk=task_pk)
+    except Task.DoesNotExist:
+        return Response({'error': 'Задача не найдена'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        steps = task.steps.all()
+        return Response(TaskStepSerializer(steps, many=True).data)
+
+    if request.method == 'POST':
+        title = request.data.get('title', '').strip()
+        if not title:
+            return Response({'error': 'Укажи название шага'}, status=status.HTTP_400_BAD_REQUEST)
+
+        order = task.steps.count()
+        step = TaskStep.objects.create(task=task, title=title, order=order)
+        return Response(TaskStepSerializer(step).data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['PATCH', 'DELETE'])
+def step_detail(request, pk):
+    """Редактировать / удалить шаг"""
+    try:
+        step = TaskStep.objects.get(pk=pk)
+    except TaskStep.DoesNotExist:
+        return Response({'error': 'Шаг не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PATCH':
+        title = request.data.get('title')
+        if title:
+            step.title = title.strip()
+            step.save()
+        return Response(TaskStepSerializer(step).data)
+
+    if request.method == 'DELETE':
+        step.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+        
