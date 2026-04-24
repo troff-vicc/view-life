@@ -37,9 +37,11 @@ export default function AIChatPage() {
   const recognitionRef = useRef(null)
   const messagesEndRef = useRef(null)
   const navigate = useNavigate()
+  const [role, setRole] = useState(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    api.get('/users/me/').then(r => setRole(r.data.role))
   }, [messages, loading])
 
   const startListening = () => {
@@ -86,6 +88,14 @@ export default function AIChatPage() {
 
   return (
     <div className="chat-wrapper">
+      {role === 'parent' && (
+        <div style={{
+          background: '#fff3cd', borderRadius: 14, padding: '16px 20px',
+          margin: '12px 0', color: '#856404', fontSize: 14, lineHeight: 1.5
+        }}>
+          👋 ИИ-ассистент доступен только для учеников. Вы можете просматривать задачи ребёнка в разделе «Главная».
+        </div>
+      )}
       <div className="chat-header">
         <button className="chat-back" onClick={() => navigate('/dashboard')}>‹</button>
         <span className="chat-title">ИИ Ассистент</span>
