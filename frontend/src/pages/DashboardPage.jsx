@@ -172,8 +172,8 @@ function TaskItem({ task, onToggle }) {
           {task.deadline && (
             <span className={`task-deadline ${isOverdue ? 'overdue' : ''}`}>
               {isOverdue
-                ? `🔴 Просрочено · ${formatDeadline(task.deadline)}`
-                : <>🟠 {formatDeadline(task.deadline)}</>
+                ? `Просрочено · ${formatDeadline(task.deadline)}`
+                : <>{formatDeadline(task.deadline)}</>
               }
             </span>
           )}
