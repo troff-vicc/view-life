@@ -18,6 +18,8 @@ export default function TaskDetailPage() {
   const navigate = useNavigate()
   const [task, setTask] = useState(null)
   const [steps, setSteps] = useState([])
+  const [newStep, setNewStep] = useState('')
+  const [addingStep, setAddingStep] = useState(false)
   const [loading, setLoading] = useState(true)
   const [completing, setCompleting] = useState(false)
   const [editingDeadline, setEditingDeadline] = useState(false)
@@ -36,6 +38,15 @@ export default function TaskDetailPage() {
   const toggleStep = (stepId) => {
     api.patch(`/tasks/steps/${stepId}/toggle/`).then(res => {
       setSteps(prev => prev.map(s => s.id === stepId ? { ...s, is_done: res.data.is_done } : s))
+    })
+  }
+
+  const addStep = () => {
+    if (!newStep.trim()) return
+    api.post(`/tasks/${id}/steps/`, { title: newStep.trim() }).then(res => {
+      setSteps(prev => [...prev, res.data])
+      setNewStep('')
+      setAddingStep(false)
     })
   }
 
@@ -81,7 +92,7 @@ export default function TaskDetailPage() {
       <div className="td-header">
         <button className="td-back" onClick={() => navigate('/dashboard')}>‹</button>
         <span className="td-title">Задача</span>
-        <button className="td-logout" onClick={handleLogout}>⏻</button>
+        <div className="avatar" onClick={() => navigate('/profile')} title="Профиль" />
       </div>
 
       <div className="td-content">
@@ -160,6 +171,34 @@ export default function TaskDetailPage() {
                 </div>
               ))}
             </div>
+            {addingStep ? (
+              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                <input
+                  autoFocus
+                  className="td-type-select"
+                  placeholder="Название подзадачи"
+                  value={newStep}
+                  onChange={e => setNewStep(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') addStep() }}
+                  style={{ flex: 1 }}
+                />
+                <button onClick={addStep} style={{
+                  background: '#CCFF00', border: 'none', borderRadius: 8,
+                  padding: '6px 12px', fontWeight: 700, cursor: 'pointer', color: '#1a1a2e'
+                }}>+</button>
+                <button onClick={() => { setAddingStep(false); setNewStep('') }} style={{
+                  background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: 18
+                }}>✕</button>
+              </div>
+            ) : (
+              <button onClick={() => setAddingStep(true)} style={{
+                background: 'none', border: '1.5px dashed #ddd', borderRadius: 8,
+                padding: '7px 12px', cursor: 'pointer', color: '#aaa', fontSize: 13,
+                marginTop: 8, width: '100%'
+              }}>
+                + Добавить подзадачу
+              </button>
+            )}
           </div>
         )}
 

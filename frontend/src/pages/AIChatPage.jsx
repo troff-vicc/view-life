@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
+import './AIChatPage.css'
 
 function formatAiResponse(data) {
   const { intent, message, task } = data
@@ -84,63 +85,49 @@ export default function AIChatPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', maxWidth: '100%', background: '#fff' }}>
-      {/* Хедер */}
-      <div style={{ padding: '16px', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>←</button>
-        <h3 style={{ margin: 0 }}>ИИ Ассистент</h3>
+    <div className="chat-wrapper">
+      <div className="chat-header">
+        <button className="chat-back" onClick={() => navigate('/dashboard')}>‹</button>
+        <span className="chat-title">ИИ Ассистент</span>
+        <div style={{ width: 36 }} />
       </div>
 
-      {/* Сообщения */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div className="chat-messages">
         {messages.map((msg, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-            <div style={{
-              background: msg.role === 'user' ? '#c6f135' : '#f0f0f0',
-              color: '#222',
-              padding: '10px 14px',
-              borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-              maxWidth: '80%',
-              whiteSpace: 'pre-line',
-              fontSize: '15px',
-              lineHeight: '1.5'
-            }}>
-              {msg.text}
-            </div>
+          <div key={i} className={`chat-msg-row ${msg.role}`}>
+            <div className={`chat-bubble ${msg.role}`}>{msg.text}</div>
           </div>
         ))}
         {loading && (
-          <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ background: '#f0f0f0', padding: '10px 14px', borderRadius: '18px 18px 18px 4px', color: '#999' }}>
-              ИИ думает...
-            </div>
+          <div className="chat-msg-row ai">
+            <div className="chat-bubble ai typing">ИИ думает...</div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Ввод */}
-      <div style={{ padding: '12px 16px', borderTop: '1px solid #eee', display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-        <textarea
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder='Напиши или скажи что нужно...'
-          rows={2}
-          style={{ flex: 1, borderRadius: '12px', border: '1px solid #ddd', padding: '10px', resize: 'none', fontSize: '15px', outline: 'none' }}
-        />
+      <div className="chat-input-bar">
         <button
+          className={`chat-mic-btn ${listening ? 'listening' : ''}`}
           onClick={listening ? stopListening : startListening}
-          style={{ width: '44px', height: '44px', borderRadius: '50%', background: listening ? '#ff4444' : '#eee', border: 'none', fontSize: '18px', cursor: 'pointer' }}
         >
           {listening ? '⏹️' : '🎤'}
         </button>
+
+        <input
+          className="chat-input"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Написать Плани..."
+        />
+
         <button
+          className={`chat-send-btn ${input.trim() ? 'active' : ''}`}
           onClick={sendMessage}
           disabled={loading || !input.trim()}
-          style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#c6f135', border: 'none', fontSize: '18px', cursor: 'pointer' }}
         >
-          ➤
+          ▶️
         </button>
       </div>
     </div>

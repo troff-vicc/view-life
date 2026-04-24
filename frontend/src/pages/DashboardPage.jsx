@@ -71,20 +71,15 @@ function DnevnikConnect() {
   )
 
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div>
       {!showForm ? (
-        <button onClick={() => setShowForm(true)} style={{
-          background: '#f0edff', border: '1.5px dashed #5b4fcf', borderRadius: 12,
-          padding: '10px 18px', cursor: 'pointer', color: '#5b4fcf', fontWeight: 600, fontSize: 14
-        }}>
+        <button onClick={() => setShowForm(true)} className="dnevnik-btn-primary">
           📚 Подключить Дневник.ру
         </button>
       ) : (
-        <div style={{ background: '#f0edff', borderRadius: 12, padding: 16 }}>
-          <div style={{ fontWeight: 600, color: '#5b4fcf', marginBottom: 8 }}>
-            📚 Подключить Дневник.ру
-          </div>
-          <div style={{ fontSize: 12, color: '#555', marginBottom: 12, lineHeight: 1.6 }}>
+        <div className="dnevnik-block">
+          <div className="dnevnik-title">📚 Подключить Дневник.ру</div>
+          <div className="dnevnik-instructions">
             Как получить токен:<br/>
             1. Войди на <b>dnevnik.ru</b><br/>
             2. Нажми <b>F12</b> → вкладка <b>Application</b><br/>
@@ -96,27 +91,37 @@ function DnevnikConnect() {
             placeholder="Вставь access_token сюда"
             value={token}
             onChange={e => setToken(e.target.value)}
-            style={{
-              width: '100%', padding: '8px 12px', borderRadius: 8,
-              border: '1.5px solid #c4b8ff', marginBottom: 10,
-              fontSize: 13, boxSizing: 'border-box'
-            }}
-          /><div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={handleSave} disabled={saving || !token.trim()} style={{
-              background: '#5b4fcf', color: '#fff', border: 'none',
-              borderRadius: 8, padding: '7px 16px', cursor: 'pointer', fontSize: 13
-            }}>
+            className="dnevnik-token-input"
+          />
+          <div className="dnevnik-btn-row">
+            <button
+              onClick={handleSave}
+              disabled={saving || !token.trim()}
+              className="dnevnik-btn-secondary"
+            >
               {saving ? 'Сохраняю...' : 'Подключить'}
             </button>
-            <button onClick={() => { setShowForm(false); setToken('') }} style={{
-              background: 'none', border: '1px solid #ccc', borderRadius: 8,
-              padding: '7px 14px', cursor: 'pointer', fontSize: 13, color: '#666'
-            }}>Отмена</button>
+            <button
+              onClick={() => { setShowForm(false); setToken('') }}
+              className="dnevnik-btn-outline"
+            >
+              Отмена
+            </button>
           </div>
         </div>
       )}
     </div>
   )
+}
+
+function formatDeadline(dt) {
+  if (!dt) return null
+  const d = new Date(dt)
+  const today = new Date()
+  const isToday = d.toDateString() === today.toDateString()
+  const time = d.toLocaleString('ru', { hour: '2-digit', minute: '2-digit' })
+  if (isToday) return time
+  return d.toLocaleString('ru', { day: 'numeric', month: 'short' }) + ', ' + time
 }
 
 function TaskItem({ task, onToggle }) {
@@ -168,7 +173,8 @@ function TaskItem({ task, onToggle }) {
             <span className={`task-deadline ${isOverdue ? 'overdue' : ''}`}>
               {isOverdue
                 ? `🔴 Просрочено · ${formatDeadline(task.deadline)}`
-                : `📅 ${formatDeadline(task.deadline)}`}
+                : <>🟠 {formatDeadline(task.deadline)}</>
+              }
             </span>
           )}
         </div>
@@ -209,28 +215,47 @@ export default function DashboardPage() {
     setTasks(tasks.map(t => t.id === task.id ? res.data : t))
   }
 
-  const logout = () => {
-    localStorage.clear()
-    navigate('/login')
-  }
-
   const doneTasks = tasks.filter(t => t.status === 'done').length
   const progress = tasks.length ? (doneTasks / tasks.length) * 100 : 0
+
+  const days = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота']
+  const now = new Date()
+  const dateStr = days[now.getDay()].toUpperCase() + ' · ' +
+  now.toLocaleString('ru', { day: 'numeric', month: 'short' }).toUpperCase()
+
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <div className="dashboard">
       <div className="header">
-        <button className="menu-btn">☰</button>
+        <button className="menu-btn" onClick={() => setMenuOpen(true)}>☰</button>
         <div className="header-right">
-          <DnevnikConnect />
           <button className="icon-btn">🔔</button>
-          <div className="avatar" onClick={logout} title="Выйти" />
+          <div className="avatar" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }} />
         </div>
       </div>
+      {menuOpen && (
+        <>
+          <div className="menu-overlay" onClick={() => setMenuOpen(false)} />
+          <div className="menu-drawer">
+            <div className="menu-drawer-header">
+              <span>Меню</span>
+              <button onClick={() => setMenuOpen(false)} className="menu-drawer-close">✕</button>
+            </div>
+            <button className="menu-drawer-item" onClick={() => { setMenuOpen(false); navigate('/create') }}>
+              ✏️ Создать задачу вручную
+            </button>
+            <div className="menu-drawer-item">
+              <DnevnikConnect />
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="progress-card">
         <div className="progress-card-left">
-          <h2>Задачи на сегодня:</h2>
+          <div className="progress-card-date">{dateStr}</div>
+          <h2>Задачи на<br/>сегодня</h2>
           <div className="progress-bar-wrap">
             <div className="progress-bar-fill" style={{ width: `${progress}%` }} />
           </div>

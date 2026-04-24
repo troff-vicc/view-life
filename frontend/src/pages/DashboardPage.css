@@ -2,11 +2,12 @@
   max-width: 100%;
   width: 100%;
   min-height: 100vh;
-  background: #fff;
+  background: #efefeb;
   padding: 16px;
-  font-family: sans-serif;
+  font-family: 'Inter', sans-serif;
   position: relative;
   box-sizing: border-box;
+  margin: 0 auto;
 }
 
 .header {
@@ -18,8 +19,9 @@
 
 .menu-btn {
   background: none;
+  color: #888;
   border: none;
-  font-size: 22px;
+  font-size: 36px;
   cursor: pointer;
 }
 
@@ -44,27 +46,42 @@
 }
 
 .progress-card {
-  background: #f5f5f5;
-  border-radius: 16px;
+  background: #e8e8e3;
+  border-radius: 20px;
   padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.progress-card-left {
+  flex: 1;
 }
 
 .progress-card-left h2 {
-  font-size: 18px;
+  font-size: 22px;
   margin: 0 0 12px 0;
+  font-weight: 800;
+  color: #1a1a2e;
+  line-height: 1.2;
+}
+
+.progress-card-date {
+  font-size: 11px;
   font-weight: 700;
-  color: #111;
+  color: #888;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
 }
 
 .progress-bar-wrap {
-  width: 160px;
+  width: 100%;
   height: 8px;
-  background: #ccc;
+  background: #d0d0cc;
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 6px;
@@ -95,17 +112,17 @@
 }
 
 .task-card {
-  background: #f0f0f0;
-  border-radius: 12px;
-  padding: 16px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
 
 .task-card:hover {
-  background: #e8e8e8;
+  background: #f8f8f4;
 }
 
 .task-card-main {
@@ -169,10 +186,6 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.task-card {
-  flex-wrap: wrap;
-}
-
 .step-item span {
   font-size: 15px;
   color: #222;
@@ -221,16 +234,18 @@
 }
 
 .task-deadline {
-  font-size: 11px;
-  color: #999;
+  font-size: 12px;
+  color: #888;
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .task-deadline.overdue {
   color: #e53e3e;
   font-weight: 600;
 }
-
 .task-info {
   flex: 1;
   display: flex;
@@ -241,5 +256,144 @@
 .checkbox {
   margin-top: 2px;
   flex-shrink: 0;
+}
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 100;
+}
+
+.menu-drawer {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 280px;
+  background: #fff;
+  z-index: 101;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+  border-radius: 0 20px 20px 0;
+}
+
+.menu-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.menu-drawer-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #aaa;
+}
+
+.menu-drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8f8f4;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a1a2e;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dnevnik-block {
+  background: #f8f8f4;
+  border-radius: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dnevnik-title {
+  font-weight: 600;
+  color: #1a1a2e;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.dnevnik-sync-time {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.dnevnik-btn-primary {
+  background: #f8f8f4;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  width: 100%;
+}
+
+.dnevnik-btn-secondary {
+  background: #CCFF00;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dnevnik-btn-outline {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+}
+
+.dnevnik-btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dnevnik-token-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #ddd;
+  margin-bottom: 10px;
+  font-size: 13px;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.dnevnik-token-input:focus {
+  border-color: #CCFF00;
+}
+
+.dnevnik-instructions {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 12px;
+  line-height: 1.6;
 }
 

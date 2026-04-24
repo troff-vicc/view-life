@@ -17,6 +17,7 @@ export default function LoginPage() {
       const res = await api.post('/users/login/', form)
       localStorage.setItem('access_token', res.data.access)
       localStorage.setItem('refresh_token', res.data.refresh)
+      setLoading(false)
       navigate('/dashboard')
     } catch {
       setError('Неверный логин или пароль')
