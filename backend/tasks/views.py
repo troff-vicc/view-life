@@ -23,6 +23,7 @@ def step_create(request, task_pk):
     from .serializers import TaskStepSerializer
     return Response(TaskStepSerializer(step).data, status=201)
 
+
 @api_view(['GET'])
 def task_list(request):
     user = request.user
@@ -30,11 +31,10 @@ def task_list(request):
         child = user.linked_student
         if not child:
             return Response([])
-        tasks = Task.objects.filter(
-            assigned_to=child
-        ).exclude(
-            task_type='personal'
-        ).distinct().order_by('-created_at')
+        tasks = (
+            Task.objects.filter(assigned_to=child) |
+            Task.objects.filter(created_by=child)
+        ).exclude(task_type='personal').distinct().order_by('-created_at')
     else:
         tasks = (
             Task.objects.filter(assigned_to=user) |
@@ -51,7 +51,6 @@ def task_create(request):
         child = user.linked_student
         if not child:
             return Response({'error': 'Не привязан ребёнок'}, status=400)
-        # подставляем ребёнка как получателя
         data = request.data.copy()
         serializer = TaskCreateSerializer(data=data, context={'request': request})
         if serializer.is_valid():
@@ -67,10 +66,11 @@ def task_create(request):
 
 
 def can_access_task(user, task):
-    """Проверяет, имеет ли пользователь доступ к задаче"""
     if user.role == 'parent':
         child = user.linked_student
-        return child and task.assigned_to == child and task.task_type != 'personal'
+        if not child or task.task_type == 'personal':
+            return False
+        return task.assigned_to == child or task.created_by == child
     return task.assigned_to == user or task.created_by == user
 
 
