@@ -119,3 +119,39 @@
   cursor: pointer;
   width: calc(100% - 32px);
 }
+
+.profile-child-block {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.profile-child-title {
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 10px;
+}
+.profile-child-input {
+  width: 100%;
+  border: 1.5px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 15px;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+  outline: none;
+}
+.profile-child-input:focus { border-color: #CCFF00; }
+.profile-child-btn {
+  width: 100%;
+  background: #CCFF00;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #1a1a2e;
+}
+.profile-child-error { color: #e53e3e; font-size: 13px; margin-bottom: 6px; }
+.profile-child-linked { font-size: 15px; color: #1a1a2e; }
