@@ -5,10 +5,13 @@ const api = axios.create({
 })
 
 // Автоматически добавляет токен к каждому запросу
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access_token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+api.interceptors.request.use(config => {
+  const noAuthRoutes = ['/users/register/', '/users/login/']
+  const isAuthRoute = noAuthRoutes.some(r => config.url?.includes(r))
+  
+  if (!isAuthRoute) {
+    const token = localStorage.getItem('access_token')
+    if (token) config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })

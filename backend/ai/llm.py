@@ -14,39 +14,44 @@ llm = OllamaLLM(
 
 def classify_task(text: str) -> dict:
     today = datetime.now().strftime("%Y-%m-%d")
-    
-    prompt = f"""You are a task classifier. Return ONLY a complete JSON object, nothing else.
 
-Task text: "{text}"
-Today: {today}
+    prompt = f"""Ты помощник школьника. Проанализируй сообщение и извлеки задачу.
 
-Return this exact JSON structure with all fields filled:
+Сообщение пользователя: "{text}"
+Сегодня: {today}
+
+ВАЖНО: Пользователь мог написать команду типа "добавь задачу", "создай", "напомни" — игнорируй слова-команды, извлеки только СУТЬ задачи.
+
+Примеры:
+- "добавить задачу сходить в магазин" → title: "Сходить в магазин"
+- "создай задачу написать сочинение по литературе" → title: "Написать сочинение по литературе"
+- "нужно подготовиться к контрольной по математике в пятницу" → title: "Подготовиться к контрольной по математике"
+
+Верни ТОЛЬКО JSON без объяснений:
 {{
-  "title": "short task name in Russian",
-  "subject": "school subject in Russian or empty string",
-  "task_type": "homework or exam or project or personal or other",
-  "priority": "low or medium or high",
-  "deadline": "YYYY-MM-DD 23:59 or null",
-  "estimated_minutes": number or null,
-  "steps": ["step 1 in Russian", "step 2 in Russian", "step 3 in Russian"]
+  "title": "суть задачи на русском (без слов-команд)",
+  "subject": "школьный предмет или пустая строка",
+  "task_type": "homework или exam или project или personal или other",
+  "priority": "low или medium или high",
+  "deadline": "YYYY-MM-DD 23:59 или null",
+  "estimated_minutes": число или null,
+  "steps": ["шаг 1", "шаг 2", "шаг 3"]
 }}
 
-Rules:
-- If deadline is tomorrow set it to {today[:8]} 23:59 (replace with tomorrow)
-- priority is high if urgent or deadline is tomorrow
-- steps must have 2-5 items
-- Respond with JSON only, no explanation"""
+Правила:
+- title — только суть, 2-6 слов, без команд
+- steps — 2-4 конкретных шага на русском, без галлюцинаций
+- priority high — если срочно или дедлайн завтра
+- Только JSON, никаких пояснений"""
 
     response = llm.invoke(prompt)
-    
+
     try:
         start = response.find('{')
         end = response.rfind('}') + 1
         if start == -1:
             raise ValueError("No JSON found")
-        json_str = response[start:end]
-        result = json.loads(json_str)
-        # Проверяем что все поля есть
+        result = json.loads(response[start:end])
         result.setdefault('title', text[:100])
         result.setdefault('subject', '')
         result.setdefault('task_type', 'other')
@@ -55,7 +60,7 @@ Rules:
         result.setdefault('estimated_minutes', None)
         result.setdefault('steps', [])
         return result
-    except Exception as e:
+    except Exception:
         return {
             "title": text[:100],
             "subject": "",
@@ -66,34 +71,33 @@ Rules:
             "steps": []
         }
 
+
 def recommend_start_time(task_data: dict, existing_tasks: list) -> str | None:
-    """ИИ автоматически советует когда начать задачу"""
-    
     deadline = task_data.get('deadline') or 'не указан'
     estimated = task_data.get('estimated_minutes') or 60
     today = datetime.now().strftime("%Y-%m-%d %H:%M")
-    
+
     busy_days = []
     for t in existing_tasks:
         if t.get('deadline'):
             busy_days.append(f"- {t['title']} (дедлайн: {t['deadline']})")
     busy_str = "\n".join(busy_days) if busy_days else "нет других задач"
-    
-    prompt = f"""School schedule planner. Choose the best time to START working on a task.
 
-Today: {today}
-Task deadline: {deadline}
-Time needed: {estimated} minutes
-Other tasks: {busy_str}
+    prompt = f"""Ты планировщик для школьника. Подбери лучшее время начать работу над задачей.
 
-Choose a time slot:
-- Weekdays: 17:00-21:00 (after school)
-- Weekends: 10:00-13:00
-- If no deadline: suggest tomorrow or day after
-- Avoid days with other tasks if possible
-- Start early enough to finish before deadline
+Сейчас: {today}
+Дедлайн задачи: {deadline}
+Нужно времени: {estimated} минут
+Другие задачи: {busy_str}
 
-Return ONLY datetime in format YYYY-MM-DD HH:MM, nothing else."""
+Правила выбора времени:
+- Будни: 17:00–21:00 (после школы)
+- Выходные: 10:00–13:00
+- Начни заранее, чтобы успеть до дедлайна
+- Если нет дедлайна — предложи завтра или послезавтра
+- Избегай дней с другими задачами если возможно
+
+Верни ТОЛЬКО дату и время в формате YYYY-MM-DD HH:MM, больше ничего."""
 
     response = llm.invoke(prompt).strip()
     try:
@@ -101,35 +105,34 @@ Return ONLY datetime in format YYYY-MM-DD HH:MM, nothing else."""
         return response[:16]
     except Exception:
         return None
+        
 
 def detect_intent(text: str, user_tasks: list) -> dict:
-    """Determines what the user wants to do"""
-
     tasks_str = "\n".join([
-        f"- id={t['id']}: {t['title']} ({t.get('subject') or 'no subject'})"
+        f"- id={t['id']}: {t['title']}"
         for t in user_tasks
-    ]) if user_tasks else "no tasks"
+    ]) if user_tasks else "нет задач"
 
-    prompt = f"""You are an intent classifier for a school task tracker. Return ONLY a complete JSON object, nothing else.
+    prompt = f"""Ты классификатор намерений для трекера задач школьника. Верни ТОЛЬКО JSON.
 
-User message: "{text}"
+Сообщение: "{text}"
 
-User's existing tasks:
+Задачи пользователя:
 {tasks_str}
 
-Return this exact JSON structure:
+Верни JSON:
 {{
-  "intent": "create_task or breakdown_task or suggest_time or general",
-  "task_id": number or null
+  "intent": "create_task или breakdown_task или suggest_time или general",
+  "task_id": число или null
 }}
 
-Rules:
-- intent=breakdown_task: user wants to split/break down an existing task into steps (keywords: разбей, подзадачи, как выполнить, помоги с)
-- intent=suggest_time: user asks when to do something (keywords: когда, во сколько, лучшее время, успею ли)
-- intent=create_task: user describes a new assignment, exam, deadline, or task
-- intent=general: anything else
-- task_id: if breakdown_task or suggest_time — find the matching task id from the list above, else null
-- Respond with JSON only, no explanation"""
+Правила:
+- create_task: пользователь описывает новое задание, экзамен, дедлайн, дело
+- breakdown_task: хочет разбить задачу на шаги (разбей, подзадачи, как выполнить, помоги с)
+- suggest_time: спрашивает когда делать (когда, во сколько, успею ли, лучшее время)
+- general: всё остальное
+- task_id: если breakdown_task или suggest_time — найди id задачи из списка выше, иначе null
+- Только JSON, никаких пояснений"""
 
     response = llm.invoke(prompt)
 
@@ -147,23 +150,22 @@ Rules:
 
 
 def generate_steps_for_task(task_title: str, task_subject: str) -> list:
-    """Создает подробные пошаговые инструкции для существующей задачи"""
+    prompt = f"""Ты помощник школьника. Составь пошаговый план выполнения задачи.
 
-    prompt = f"""You are a school task planner. Return ONLY a complete JSON object, nothing else.
+Задача: "{task_title}"
+Предмет: "{task_subject or 'не указан'}"
 
-Task: "{task_title}"
-Subject: "{task_subject or 'not specified'}"
-
-Return this exact JSON structure:
+Верни ТОЛЬКО JSON без объяснений:
 {{
-  "steps": ["step 1 in Russian", "step 2 in Russian", "step 3 in Russian", "step 4 in Russian"]
+  "steps": ["шаг 1", "шаг 2", "шаг 3", "шаг 4"]
 }}
 
-Rules:
-- steps must be 3-6 specific, actionable items in Russian
-- steps should be ordered logically (preparation → execution → review)
-- each step should be short (5-10 words)
-- Respond with JSON only, no explanation"""
+Правила:
+- 3-5 конкретных шагов на русском языке
+- Шаги логичны: подготовка → выполнение → проверка
+- Каждый шаг — 3-8 слов, чёткий и понятный
+- Никаких галлюцинаций, только реальные действия
+- Только JSON, никаких пояснений"""
 
     response = llm.invoke(prompt)
 
@@ -175,5 +177,5 @@ Rules:
         result = json.loads(response[start:end])
         return result.get('steps', [])
     except Exception:
-        return ["Подготовиться", "Выполнить задание", "Проверить работу"]
+        return ["Подготовиться к выполнению", "Выполнить задание", "Проверить результат"]
 
