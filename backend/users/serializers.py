@@ -20,6 +20,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    linked_teacher_username = serializers.SerializerMethodField()
+
+    def get_linked_teacher_username(self, obj):
+        return obj.linked_teacher.username if obj.linked_teacher else None
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'role', 'linked_student', 'linked_teacher']
+        fields = ['id', 'username', 'email', 'role', 'linked_student', 'linked_teacher', 'linked_teacher_username']

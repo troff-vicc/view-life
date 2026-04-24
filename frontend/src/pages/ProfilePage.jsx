@@ -4,9 +4,9 @@ import api from '../api/axios'
 import './ProfilePage.css'
 
 const ROLE_LABEL = {
-  student: '🎒 Ученик',
-  teacher: '👨‍🏫 Учитель',
-  parent: '👨‍👧 Родитель',
+  student: 'Ученик',
+  teacher: 'Учитель',
+  parent: 'Родитель',
 }
 
 const menuItems = [
@@ -35,6 +35,9 @@ export default function ProfilePage() {
         setUser(r.data)
         if (r.data.role === 'parent') {
           api.get('/users/my-child/').then(c => setChild(c.data)).catch(() => {})
+        }
+        if (r.data.role === 'student' && r.data.linked_teacher_username) {
+          setTeacher({ username: r.data.linked_teacher_username })
         }
       })
       .catch(() => navigate('/login'))
