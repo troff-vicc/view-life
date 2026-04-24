@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import './DashboardPage.css'
+import { BottomNav } from './CalendarPage'
+import { Bell } from 'lucide-react'
 
 function DnevnikConnect() {
   const [connected, setConnected] = useState(false)
@@ -230,7 +232,7 @@ export default function DashboardPage() {
       <div className="header">
         <button className="menu-btn" onClick={() => setMenuOpen(true)}>☰</button>
         <div className="header-right">
-          <button className="icon-btn">🔔</button>
+          <button className="icon-btn"><Bell size={20} color="#1a1a2e" /></button>
           <div className="avatar" onClick={() => navigate('/profile')} style={{ cursor: 'pointer' }} />
         </div>
       </div>
@@ -273,7 +275,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <button className="fab" onClick={() => navigate('/ai')}>+</button>
+      <BottomNav active="home" />
     </div>
   )
 }

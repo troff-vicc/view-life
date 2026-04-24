@@ -25,22 +25,53 @@ def step_create(request, task_pk):
 
 @api_view(['GET'])
 def task_list(request):
-    """Список задач текущего пользователя"""
-    tasks = Task.objects.filter(assigned_to=request.user) | \
-            Task.objects.filter(created_by=request.user)
-    tasks = tasks.distinct().order_by('-created_at')
-    serializer = TaskSerializer(tasks, many=True)
-    return Response(serializer.data)
+    user = request.user
+    if user.role == 'parent':
+        child = user.linked_student
+        if not child:
+            return Response([])
+        tasks = Task.objects.filter(
+            assigned_to=child
+        ).exclude(
+            task_type='personal'
+        ).distinct().order_by('-created_at')
+    else:
+        tasks = (
+            Task.objects.filter(assigned_to=user) |
+            Task.objects.filter(created_by=user)
+        ).distinct().order_by('-created_at')
+
+    return Response(TaskSerializer(tasks, many=True).data)
 
 
 @api_view(['POST'])
 def task_create(request):
-    """Создать задачу вручную"""
-    serializer = TaskCreateSerializer(data=request.data, context={'request': request})
-    if serializer.is_valid():
-        task = serializer.save()
-        return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    user = request.user
+    if user.role == 'parent':
+        child = user.linked_student
+        if not child:
+            return Response({'error': 'Не привязан ребёнок'}, status=400)
+        # подставляем ребёнка как получателя
+        data = request.data.copy()
+        serializer = TaskCreateSerializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            task = serializer.save(created_by=user, assigned_to=child)
+            return Response(TaskSerializer(task).data, status=201)
+        return Response(serializer.errors, status=400)
+    else:
+        serializer = TaskCreateSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            task = serializer.save()
+            return Response(TaskSerializer(task).data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+def can_access_task(user, task):
+    """Проверяет, имеет ли пользователь доступ к задаче"""
+    if user.role == 'parent':
+        child = user.linked_student
+        return child and task.assigned_to == child and task.task_type != 'personal'
+    return task.assigned_to == user or task.created_by == user
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
@@ -50,6 +81,9 @@ def task_detail(request, pk):
         task = Task.objects.get(pk=pk)
     except Task.DoesNotExist:
         return Response({'error': 'Задача не найдена'}, status=status.HTTP_404_NOT_FOUND)
+
+    if not can_access_task(request.user, task):
+        return Response({'error': 'Нет доступа'}, status=403)
 
     if request.method == 'GET':
         return Response(TaskSerializer(task).data)
@@ -73,6 +107,9 @@ def task_status(request, pk):
         task = Task.objects.get(pk=pk)
     except Task.DoesNotExist:
         return Response({'error': 'Задача не найдена'}, status=status.HTTP_404_NOT_FOUND)
+
+    if not can_access_task(request.user, task):
+        return Response({'error': 'Нет доступа'}, status=403)
 
     new_status = request.data.get('status')
     if new_status not in ['pending', 'in_progress', 'done']:

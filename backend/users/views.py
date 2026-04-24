@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializer, UserSerializer
+from .models import User
 
 
 @api_view(['POST'])
@@ -24,3 +25,40 @@ def register(request):
 @api_view(['GET'])
 def me(request):
     return Response(UserSerializer(request.user).data)
+
+
+@api_view(['POST'])
+def link_child(request):
+    """Родитель привязывает аккаунт ребёнка по username"""
+    if request.user.role != 'parent':
+        return Response({'error': 'Только для родителей'}, status=403)
+
+    username = request.data.get('username', '').strip()
+    if not username:
+        return Response({'error': 'Укажи username ребёнка'}, status=400)
+
+    try:
+        child = User.objects.get(username=username, role='student')
+    except User.DoesNotExist:
+        return Response({'error': 'Ученик с таким username не найден'}, status=404)
+
+    request.user.linked_student = child
+    request.user.save()
+    return Response({'ok': True, 'child_username': child.username})
+
+
+@api_view(['GET'])
+def my_child(request):
+    """Данные привязанного ребёнка"""
+    if request.user.role != 'parent':
+        return Response({'error': 'Только для родителей'}, status=403)
+
+    child = request.user.linked_student
+    if not child:
+        return Response({'linked': False})
+
+    return Response({
+        'linked': True,
+        'id': child.id,
+        'username': child.username,
+    })

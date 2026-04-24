@@ -6,11 +6,11 @@ import './TaskDetailPage.css'
 const PRIORITY_LABEL = { high: 'Высокий приоритет', medium: 'Средний приоритет', low: 'Низкий приоритет' }
 const PRIORITY_CLASS = { high: 'priority-high', medium: 'priority-medium', low: 'priority-low' }
 const TYPE_OPTIONS = [
-  { value: 'homework', label: '📝 Домашнее задание' },
-  { value: 'exam', label: '📋 Экзамен / контрольная' },
-  { value: 'project', label: '🗂 Проект' },
-  { value: 'personal', label: '⭐️ Личное' },
-  { value: 'other', label: '📌 Другое' },
+  { value: 'homework', label: 'Домашнее задание' },
+  { value: 'exam', label: 'Экзамен / контрольная' },
+  { value: 'project', label: 'Проект' },
+  { value: 'personal', label: 'Личное' },
+  { value: 'other', label: 'Другое' },
 ]
 
 export default function TaskDetailPage() {
@@ -144,8 +144,6 @@ export default function TaskDetailPage() {
     </div>
   )}
 </div>
-
-        {steps.length > 0 && (
           <div className="td-steps-block">
             <div className="td-steps-header">
               Подзадачи
@@ -200,7 +198,6 @@ export default function TaskDetailPage() {
               </button>
             )}
           </div>
-        )}
 
         {task.description ? (
           <div className="td-section">

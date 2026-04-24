@@ -7,4 +7,6 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('me/', views.me, name='me'),
+    path('link-child/', views.link_child, name='link_child'),
+    path('my-child/', views.my_child, name='my_child'),
 ]
