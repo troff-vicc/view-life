@@ -79,9 +79,12 @@ def ai_chat(request):
     if not text:
         return Response({'error': 'Текст не указан'}, status=status.HTTP_400_BAD_REQUEST)
 
-    user_tasks = list(request.user.assigned_tasks.filter(
-        status__in=['pending', 'in_progress']
-    ).values('id', 'title', 'subject', 'deadline'))
+    user_tasks = list(
+        (request.user.assigned_tasks.filter(status__in=['pending', 'in_progress']) |
+         Task.objects.filter(created_by=request.user, status__in=['pending', 'in_progress']))
+        .distinct()
+        .values('id', 'title', 'subject', 'deadline')
+    )
 
     intent_data = detect_intent(text, user_tasks)
     intent = intent_data.get('intent', 'general')
@@ -126,9 +129,11 @@ def ai_chat(request):
         })
 
     elif intent == 'breakdown_task' and task_id:
-        try:
-            task = Task.objects.get(id=task_id, assigned_to=request.user)
-        except Task.DoesNotExist:
+        from django.db import models as db_models
+        task = Task.objects.filter(id=task_id).filter(
+            db_models.Q(assigned_to=request.user) | db_models.Q(created_by=request.user)
+        ).first()
+        if not task:
             return Response({'intent': 'general', 'message': 'Задача не найдена'})
 
         task.steps.all().delete()
