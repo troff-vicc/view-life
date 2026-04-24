@@ -16,5 +16,11 @@ class User(AbstractUser):
         related_name='parents'
     )
 
+    linked_teacher = models.ForeignKey(
+        'self', null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='students'
+    )
+
     def __str__(self):
         return f"{self.username} ({self.role})"

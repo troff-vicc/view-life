@@ -35,6 +35,10 @@ def task_list(request):
             Task.objects.filter(assigned_to=child) |
             Task.objects.filter(created_by=child)
         ).exclude(task_type='personal').distinct().order_by('-created_at')
+    elif user.role == 'teacher':
+        tasks = Task.objects.filter(
+            created_by=user
+        ).distinct().order_by('-created_at')
     else:
         tasks = (
             Task.objects.filter(assigned_to=user) |
@@ -57,6 +61,20 @@ def task_create(request):
             task = serializer.save(created_by=user, assigned_to=child)
             return Response(TaskSerializer(task).data, status=201)
         return Response(serializer.errors, status=400)
+    elif user.role == 'teacher':
+        student_id = request.data.get('assigned_to')
+        if not student_id:
+            return Response({'error': 'Укажи ученика'}, status=400)
+        try:
+            from users.models import User
+            student = User.objects.get(id=student_id, linked_teacher=user)
+        except User.DoesNotExist:
+            return Response({'error': 'Ученик не найден или не привязан к вам'}, status=404)
+        serializer = TaskCreateSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            task = serializer.save(created_by=user, assigned_to=student)
+            return Response(TaskSerializer(task).data, status=201)
+        return Response(serializer.errors, status=400)
     else:
         serializer = TaskCreateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -71,6 +89,8 @@ def can_access_task(user, task):
         if not child or task.task_type == 'personal':
             return False
         return task.assigned_to == child or task.created_by == child
+    if user.role == 'teacher':
+        return task.created_by == user
     return task.assigned_to == user or task.created_by == user
 
 

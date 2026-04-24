@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 import './CreateTaskPage.css'
@@ -28,6 +28,17 @@ export default function CreateTaskPage() {
   const [newStep, setNewStep] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [students, setStudents] = useState([])
+  const [selectedStudent, setSelectedStudent] = useState(null)
+
+
+  useEffect(() => {
+    api.get('/users/me/').then(r => {
+      if (r.data.role === 'teacher') {
+        api.get('/users/my-students/').then(s => setStudents(s.data))
+      }
+    })
+  }, [])
 
   const addStep = () => {
     if (!newStep.trim()) return
@@ -42,6 +53,13 @@ export default function CreateTaskPage() {
     setLoading(true)
     setError('')
     try {
+      if (students.length > 0 && !selectedStudent) {
+        setError('Выбери ученика')
+        return
+      }
+      if (selectedStudent) payload.assigned_to = selectedStudent
+
+
       const payload = { title: title.trim(), priority, task_type: taskType }
       if (deadline) payload.deadline = deadline
       const res = await api.post('/tasks/create/', payload)
@@ -117,7 +135,22 @@ export default function CreateTaskPage() {
         />
         <button className="ct-add-step-btn" onClick={addStep}>+</button>
       </div>
-
+      {students.length > 0 && (
+        <>
+          <div className="ct-section-label">Ученик</div>
+          <div className="ct-types-grid">
+            {students.map(s => (
+              <button
+                key={s.id}
+                className={`ct-type-btn${selectedStudent === s.id ? ' active' : ''}`}
+                onClick={() => setSelectedStudent(s.id)}
+              >
+                👤 {s.username}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <div className="ct-section-label">Тип задачи</div>
       <div className="ct-types-grid">
         {TYPES.filter(t => t.value !== 'other').map(t => (

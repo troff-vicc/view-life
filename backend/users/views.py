@@ -62,3 +62,34 @@ def my_child(request):
         'id': child.id,
         'username': child.username,
     })
+
+
+@api_view(['POST'])
+def link_teacher(request):
+    """Ученик привязывает себя к учителю по username"""
+    if request.user.role != 'student':
+        return Response({'error': 'Только для учеников'}, status=403)
+
+    username = request.data.get('username', '').strip()
+    if not username:
+        return Response({'error': 'Укажи username учителя'}, status=400)
+
+    try:
+        teacher = User.objects.get(username=username, role='teacher')
+    except User.DoesNotExist:
+        return Response({'error': 'Учитель с таким username не найден'}, status=404)
+
+    request.user.linked_teacher = teacher
+    request.user.save()
+    return Response({'ok': True, 'teacher_username': teacher.username})
+
+
+@api_view(['GET'])
+def my_students(request):
+    """Учитель получает список своих учеников"""
+    if request.user.role != 'teacher':
+        return Response({'error': 'Только для учителей'}, status=403)
+
+    students = User.objects.filter(linked_teacher=request.user, role='student')
+    data = [{'id': s.id, 'username': s.username} for s in students]
+    return Response(data)

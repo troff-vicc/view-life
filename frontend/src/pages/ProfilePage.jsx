@@ -24,6 +24,10 @@ export default function ProfilePage() {
   const [childInput, setChildInput] = useState('')
   const [linkLoading, setLinkLoading] = useState(false)
   const [linkError, setLinkError] = useState('')
+  const [teacher, setTeacher] = useState(null)
+  const [teacherInput, setTeacherInput] = useState('')
+  const [teacherLoading, setTeacherLoading] = useState(false)
+  const [teacherError, setTeacherError] = useState('')
 
   useEffect(() => {
     api.get('/users/me/')
@@ -57,6 +61,21 @@ export default function ProfilePage() {
     }
   }
 
+  const handleLinkTeacher = async () => {
+    if (!teacherInput.trim()) return
+    setTeacherLoading(true)
+    setTeacherError('')
+    try {
+      const res = await api.post('/users/link-teacher/', { username: teacherInput.trim() })
+      setTeacher({ username: res.data.teacher_username })
+      setTeacherInput('')
+    } catch (e) {
+      setTeacherError(e.response?.data?.error || 'Ошибка')
+    } finally {
+      setTeacherLoading(false)
+    }
+  }
+
   return (
     <div className="profile-wrapper">
       <div className="profile-header">
@@ -77,7 +96,7 @@ export default function ProfilePage() {
         <div className="profile-child-block">
           {child?.linked ? (
             <div className="profile-child-linked">
-              <span>👦 Привязан: <b>{child.username}</b></span>
+              <span>Привязан: <b>{child.username}</b></span>
             </div>
           ) : (
             <div className="profile-child-form">
@@ -100,6 +119,35 @@ export default function ProfilePage() {
           )}
         </div>
       )}
+
+      {user?.role === 'student' && (
+        <div className="profile-child-block">
+          {teacher ? (
+            <div className="profile-child-linked">
+              <span>Учитель: <b>{teacher.username}</b></span>
+            </div>
+          ) : (
+            <div className="profile-child-form">
+              <div className="profile-child-title">Привязать учителя</div>
+              <input
+                className="profile-child-input"
+                placeholder="Username учителя"
+                value={teacherInput}
+                onChange={e => setTeacherInput(e.target.value)}
+              />
+              {teacherError && <div className="profile-child-error">{teacherError}</div>}
+              <button
+                className="profile-child-btn"
+                onClick={handleLinkTeacher}
+                disabled={teacherLoading}
+              >
+                {teacherLoading ? 'Привязываю...' : 'Привязать'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="profile-menu">
         {menuItems.map(item => (
           <button
