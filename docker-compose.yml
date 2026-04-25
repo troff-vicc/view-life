@@ -1,0 +1,22 @@
+services:
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      - DEBUG=0
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.1:8b
+    volumes:
+      # SQLite база данных сохраняется между перезапусками
+      - ./backend/db.sqlite3:/app/db.sqlite3
+    expose:
+      - "8000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
