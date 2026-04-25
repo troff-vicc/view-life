@@ -1,0 +1,91 @@
+.onb-wrapper {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 30% 15%, #ffffff 0%, #f2fcd0 40%, #e5f79a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  padding: 32px 24px 48px;
+  box-sizing: border-box;
+}
+
+.onb-mascot-area {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.onb-mascot {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+}
+
+.onb-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.onb-text {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1a1a2e;
+  text-align: center;
+  line-height: 1.55;
+  margin: 0 0 28px 0;
+  max-width: 300px;
+}
+
+.onb-dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.onb-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  opacity: 0.25;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onb-dot.active {
+  background: #1a1a2e;
+  opacity: 1;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.onb-btn {
+  width: 100%;
+  max-width: 300px;
+  background: #c8f044;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+
+.onb-register-link {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #888;
+  text-align: center;
+}
+
+.onb-register-link span {
+  color: #1a1a2e;
+  font-weight: 700;
+  cursor: pointer;
+}

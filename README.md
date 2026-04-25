@@ -70,21 +70,22 @@
 ```
 view-life/
 ├── backend/
-│   ├── config/          # Настройки Django, URL-маршруты
-│   ├── users/           # Модель пользователя, роли, JWT авторизация
-│   ├── tasks/           # Задачи (Task), подзадачи (TaskStep), CRUD API
-│   ├── ai/              # ИИ-агент: маршрутизация intent, классификация, разбивка, рекомендации
-│   └── integrations/    # Интеграция с Дневник.ру
+│   ├── config/
+│   ├── users/
+│   ├── tasks/
+│   ├── ai/
+│   └── integrations/
 ├── frontend/
 │   ├── src/
-│   │   ├── api/         # axios с автоподстановкой JWT токена
+│   │   ├── api/
 │   │   └── pages/
-│   │       ├── DashboardPage.jsx    # Главная: список задач, прогресс
-│   │       ├── TaskDetailPage.jsx   # Детали задачи, подзадачи
-│   │       ├── CreateTaskPage.jsx   # Ручное создание задачи
-│   │       ├── CalendarPage.jsx     # Календарь задач
-│   │       ├── AIChatPage.jsx       # Чат с ИИ-агентом
-│   │       └── ProfilePage.jsx      # Профиль, роли, привязка
+│   │       ├── OnboardingPage.jsx
+│   │       ├── DashboardPage.jsx
+│   │       ├── TaskDetailPage.jsx
+│   │       ├── CreateTaskPage.jsx
+│   │       ├── CalendarPage.jsx
+│   │       ├── AIChatPage.jsx
+│   │       └── ProfilePage.jsx
 │   └── nginx.conf
 ├── docker-compose.yml
 └── README.md
@@ -94,86 +95,80 @@ view-life/
 
 ## Запуск через Docker
 
-```bash
-git clone https://github.com/troff-vicc/view-life.git
+git clone https://github.com/F-4-K-E/view-life.git
 cd view-life
 docker compose up --build
-```
 
-Приложение будет доступно на http://localhost
+Приложение: http://localhost
 
-Для работы ИИ нужен Ollama на хосте:
-```bash
+Для ИИ — Ollama на хосте:
 ollama pull llama3.1:8b
 ollama serve
-```
 
 ---
 
 ## Запуск локально
 
-### Backend
-
-```bash
+Backend:
 cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
-```
 
-### Frontend
-
-```bash
+Frontend:
 cd frontend
 npm install
 npm run dev
-```
 
 ---
 
 ## API
 
-| Метод | Маршрут | Описание |
-|-------|---------|----------|
-| POST | `/api/users/register/` | Регистрация |
-| POST | `/api/users/login/` | Вход (JWT) |
-| GET | `/api/users/me/` | Текущий пользователь |
-| POST | `/api/users/link-child/` | Родитель привязывает ребёнка |
-| POST | `/api/users/link-teacher/` | Ученик привязывает учителя |
-| GET | `/api/users/my-students/` | Список учеников учителя |
-| GET | `/api/tasks/` | Список задач |
-| POST | `/api/tasks/create/` | Создать задачу |
-| GET/PATCH/DELETE | `/api/tasks/<id>/` | Детали / обновление / удаление |
-| PATCH | `/api/tasks/<id>/status/` | Изменить статус |
-| GET/POST | `/api/tasks/<id>/steps/` | Подзадачи |
-| PATCH | `/api/tasks/steps/<id>/toggle/` | Отметить подзадачу |
-| POST | `/api/ai/chat/` | ИИ-агент: чат с маршрутизацией намерений |
-| POST | `/api/ai/create-task/` | Создать задачу через ИИ |
-| POST | `/api/integrations/dnevnik/connect/` | Подключить Дневник.ру |
-| POST | `/api/integrations/dnevnik/sync/` | Синхронизировать ДЗ |
+POST   /api/users/register/
+POST   /api/users/login/
+GET    /api/users/me/
+POST   /api/users/link-child/
+POST   /api/users/link-teacher/
+GET    /api/users/my-students/
+GET    /api/tasks/
+POST   /api/tasks/create/
+GET/PATCH/DELETE /api/tasks/<id>/
+PATCH  /api/tasks/<id>/status/
+GET/POST /api/tasks/<id>/steps/
+PATCH  /api/tasks/steps/<id>/toggle/
+POST   /api/ai/chat/
+POST   /api/ai/create-task/
+POST   /api/integrations/dnevnik/connect/
+POST   /api/integrations/dnevnik/sync/
 
 ---
 
 ## Как работает ИИ-агент
 
-1. Пользователь пишет или говорит: *«Нужно подготовиться к контрольной по физике в пятницу»*
-2. Агент определяет **intent**: создать задачу / разбить на шаги / рекомендовать время
-3. Задача автоматически **классифицируется** — тип, приоритет, дедлайн
-4. Генерируются **подзадачи** — конкретные шаги выполнения
-5. Рассчитывается **рекомендуемое время начала** с учётом расписания пользователя
+1. Пользователь пишет: «Нужно подготовиться к контрольной по физике в пятницу»
+2. Агент определяет intent: создать задачу / разбить на шаги / рекомендовать время
+3. Задача автоматически классифицируется — тип, приоритет, дедлайн
+4. Генерируются подзадачи — конкретные шаги выполнения
+5. Рассчитывается рекомендуемое время начала с учётом расписания
 
-Модель работает локально — пользовательские данные не передаются в облако.
+Модель работает локально — данные не передаются в облако.
 
 ---
 
 ## Скриншоты
 
-> Добавь скриншоты приложения
+Скриншоты в папке docs/screenshots/
+
+
+![](docs/screenshots/screenshots1.png)
+![](docs/screenshots/screenshots2.png)
+![](docs/screenshots/screenshots3.png)
+![](docs/screenshots/screenshots4.png)
 
 ---
 
 ## Команда
 
-> Хакатон WATA — трек «Школьники»
+Хакатон WATA — трек «Школьники»

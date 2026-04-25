@@ -3,6 +3,12 @@ import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios'
 import './AuthPage.css'
 
+const ROLES = [
+  { value: 'student', label: 'Ученик' },
+  { value: 'teacher', label: 'Учитель' },
+  { value: 'parent',  label: 'Родитель' },
+]
+
 export default function RegisterPage() {
   const [form, setForm] = useState({ username: '', password: '', role: 'student' })
   const [error, setError] = useState('')
@@ -17,7 +23,7 @@ export default function RegisterPage() {
       const res = await api.post('/users/register/', form)
       localStorage.setItem('access_token', res.data.access)
       localStorage.setItem('refresh_token', res.data.refresh)
-      navigate('/dashboard')
+      window.location.href = '/dashboard'
     } catch {
       setError('Ошибка регистрации. Проверь данные.')
     } finally {
@@ -25,20 +31,16 @@ export default function RegisterPage() {
     }
   }
 
-  const roles = [
-    { value: 'student', label: '🎒 Ученик' },
-    { value: 'teacher', label: '👨‍🏫 Учитель' },
-    { value: 'parent', label: '👨‍👧 Родитель' },
-  ]
-
   return (
     <div className="auth-wrapper">
+      <div className="auth-mascot-wrap">
+        <img src="/mascot1.png" alt="" className="auth-mascot"
+          onError={e => e.target.style.display='none'} />
+      </div>
       <div className="auth-card">
-        <div className="auth-logo">📚</div>
-        <h1 className="auth-title">Плани</h1>
-        <p className="auth-subtitle">Создай аккаунт</p>
+        <h1 className="auth-title">Создание аккаунта</h1>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit}>
           <div className="auth-field">
             <label>Логин</label>
             <input
@@ -59,13 +61,13 @@ export default function RegisterPage() {
             />
           </div>
           <div className="auth-field">
-            <label>Кто ты?</label>
+            <div className="auth-roles-label">Кто ты?</div>
             <div className="auth-roles">
-              {roles.map(r => (
+              {ROLES.map(r => (
                 <button
                   key={r.value}
                   type="button"
-                  className={`auth-role-btn ${form.role === r.value ? 'active' : ''}`}
+                  className={`auth-role-btn${form.role === r.value ? ' active' : ''}`}
                   onClick={() => setForm({...form, role: r.value})}
                 >
                   {r.label}
@@ -82,7 +84,7 @@ export default function RegisterPage() {
         </form>
 
         <p className="auth-link">
-          Уже есть аккаунт? <Link to="/login">Войти</Link>
+          уже есть аккаунт? <Link to="/login">Войти</Link>
         </p>
       </div>
     </div>

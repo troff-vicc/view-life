@@ -17,8 +17,7 @@ export default function LoginPage() {
       const res = await api.post('/users/login/', form)
       localStorage.setItem('access_token', res.data.access)
       localStorage.setItem('refresh_token', res.data.refresh)
-      setLoading(false)
-      navigate('/dashboard')
+      window.location.href = '/dashboard'
     } catch {
       setError('Неверный логин или пароль')
     } finally {
@@ -28,12 +27,14 @@ export default function LoginPage() {
 
   return (
     <div className="auth-wrapper">
+      <div className="auth-mascot-wrap">
+        <img src="/mascot1.png" alt="" className="auth-mascot"
+          onError={e => e.target.style.display='none'} />
+      </div>
       <div className="auth-card">
-        <div className="auth-logo">📚</div>
-        <h1 className="auth-title">Плани</h1>
-        <p className="auth-subtitle">Умный трекер учебных задач</p>
+        <h1 className="auth-title">Вход</h1>
 
-        <form onSubmit={handleSubmit} className="auth-form">
+        <form onSubmit={handleSubmit}>
           <div className="auth-field">
             <label>Логин</label>
             <input
@@ -62,7 +63,7 @@ export default function LoginPage() {
         </form>
 
         <p className="auth-link">
-          Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+          нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
         </p>
       </div>
     </div>
